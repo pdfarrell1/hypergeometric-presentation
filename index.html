@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypergeometric Distribution: Scrabble Tiles</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .slide {
+            display: none;
+            animation: fadeIn 0.8s ease-in-out;
+            min-height: 500px;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tile-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .tile {
+            width: 40px;
+            height: 40px;
+            background: #f39c12;
+            border: 2px solid #d68910;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+        }
+        
+        .tile.e-tile {
+            background: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+        }
+        
+        .tile.selected {
+            transform: scale(1.2);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .formula {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        .explanation {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .calculation {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .highlight {
+            background: rgba(255, 255, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 4px;
+            border-radius: 2px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            transition: width 0.3s ease;
+        }
+        
+        .slide-counter {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hypergeometric Distribution</h1>
+        <div class="slide-counter">
+            <span id="slideNumber">1</span> / <span id="totalSlides">7</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <!-- Slide 1: Problem Introduction -->
+        <div class="slide active">
+            <h2>The Scrabble Tile Problem</h2>
+            <div class="explanation">
+                <p><strong>Scenario:</strong> We have 100 Scrabble tiles in a bag.</p>
+                <p><strong>Key Information:</strong></p>
+                <ul>
+                    <li>12 tiles are the letter "E"</li>
+                    <li>88 tiles are other letters</li>
+                    <li>We draw 7 tiles without replacement</li>
+                </ul>
+                <p><strong>Question:</strong> What's the probability of getting exactly 2 E's?</p>
+            </div>
+            
+            <div class="tile-container" id="allTiles">
+                <!-- Tiles will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Slide 2: Why Hypergeometric? -->
+        <div class="slide">
+            <h2>Why Use Hypergeometric Distribution?</h2>
+            <div class="explanation">
+                <p>We use the <strong>hypergeometric distribution</strong> because:</p>
+                <ul>
+                    <li>We're sampling <em>without replacement</em></li>
+                    <li>We have a finite population (100 tiles)</li>
+                    <li>Each tile can be classified as "success" (E) or "failure" (not E)</li>
+                    <li>We want exactly k successes in n draws</li>
+                </ul>
+                <p>This is different from binomial distribution, which assumes sampling <em>with</em> replacement.</p>
+            </div>
+        </div>
+        
+        <!-- Slide 3: The Formula -->
+        <div class="slide">
+            <h2>The Hypergeometric Formula</h2>
+            <div class="formula">
+                P(X = k) = [C(K,k) × C(N-K,n-k)] / C(N,n)
+            </div>
+            <div class="explanation">
+                <p><strong>Where:</strong></p>
+                <ul>
+                    <li><strong>N</strong> = Total population size (100 tiles)</li>
+                    <li><strong>K</strong> = Number of success items in population (12 E's)</li>
+                    <li><strong>n</strong> = Number of draws (7 tiles)</li>
+                    <li><strong>k</strong> = Number of successes we want (2 E's)</li>
+                    <li><strong>C(a,b)</strong> = Combination: "a choose b"</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Slide 4: Substituting Values -->
+        <div class="slide">
+            <h2>Substituting Our Values</h2>
+            <div class="formula">
+                P(X = 2) = [C(12,2) × C(88,5)] / C(100,7)
+            </div>
+            <div class="explanation">
+                <p><strong>Breaking it down:</strong></p>
+                <ul>
+                    <li><span class="highlight">C(12,2)</span> = Ways to choose 2 E's from 12 E's</li>
+                    <li><span class="highlight">C(88,5)</span> = Ways to choose 5 non-E's from 88 non-E's</li>
+                    <li><span class="highlight">C(100,7)</span> = Total ways to choose 7 tiles from 100</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Slide 5: Calculating Combinations -->
+        <div class="slide">
+            <h2>Calculating Each Combination</h2>
+            <div class="calculation">
+                <p><strong>C(12,2) = 12!/(2! × 10!) = (12 × 11)/(2 × 1) = 66</strong></p>
+            </div>
+            <div class="calculation">
+                <p><strong>C(88,5) = 88!/(5! × 83!) = 533,175,232</strong></p>
+            </div>
+            <div class="calculation">
+                <p><strong>C(100,7) = 100!/(7! × 93!) = 16,007,560,800</strong></p>
+            </div>
+            <div class="explanation">
+                <p>The combination formula C(n,r) = n!/(r!(n-r)!) gives us the number of ways to choose r items from n items without regard to order.</p>
+            </div>
+        </div>
+        
+        <!-- Slide 6: Final Calculation -->
+        <div class="slide">
+            <h2>Final Calculation</h2>
+            <div class="formula">
+                P(X = 2) = (66 × 533,175,232) / 16,007,560,800
+            </div>
+            <div class="calculation">
+                <p><strong>Numerator:</strong> 66 × 533,175,232 = 35,189,565,312</p>
+            </div>
+            <div class="calculation">
+                <p><strong>Final Result:</strong> 35,189,565,312 / 16,007,560,800 ≈ 0.2198</p>
+            </div>
+            <div class="explanation">
+                <h3>Answer: 21.98%</h3>
+                <p>There's approximately a <strong>22% chance</strong> of getting exactly 2 E's when drawing 7 tiles from our Scrabble bag.</p>
+            </div>
+        </div>
+        
+        <!-- Slide 7: Visual Summary -->
+        <div class="slide">
+            <h2>Visual Summary</h2>
+            <div class="explanation">
+                <p><strong>The hypergeometric distribution answers:</strong> "What's the probability of getting exactly k successes when sampling n items without replacement from a finite population?"</p>
+            </div>
+            <div class="tile-container" id="selectedTiles">
+                <div class="tile e-tile selected">E</div>
+                <div class="tile e-tile selected">E</div>
+                <div class="tile selected">A</div>
+                <div class="tile selected">T</div>
+                <div class="tile selected">R</div>
+                <div class="tile selected">S</div>
+                <div class="tile selected">N</div>
+            </div>
+            <div class="explanation">
+                <p><strong>Key takeaway:</strong> When sampling without replacement, the probability changes with each draw, making the hypergeometric distribution the correct choice over binomial distribution.</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="prevBtn" onclick="changeSlide(-1)">Previous</button>
+            <button id="nextBtn" onclick="changeSlide(1)">Next</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentSlide = 0;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        
+        // Generate tiles for the first slide
+        function generateTiles() {
+            const container = document.getElementById('allTiles');
+            container.innerHTML = '';
+            
+            // Add 12 E tiles
+            for (let i = 0; i < 12; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile e-tile';
+                tile.textContent = 'E';
+                container.appendChild(tile);
+            }
+            
+            // Add 88 other tiles
+            const letters = 'ABCDFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            for (let i = 0; i < 88; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.textContent = letters[i % letters.length];
+                container.appendChild(tile);
+            }
+        }
+        
+        function updateSlideCounter() {
+            document.getElementById('slideNumber').textContent = currentSlide + 1;
+            document.getElementById('totalSlides').textContent = totalSlides;
+            
+            const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+        }
+        
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            
+            if (n >= totalSlides) currentSlide = 0;
+            if (n < 0) currentSlide = totalSlides - 1;
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+            
+            updateSlideCounter();
+        }
+        
+        function changeSlide(n) {
+            currentSlide += n;
+            showSlide(currentSlide);
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft') changeSlide(-1);
+            if (event.key === 'ArrowRight') changeSlide(1);
+        });
+        
+        // Initialize
+        generateTiles();
+        showSlide(0);
+        
+        // Add some interactive animations
+        setTimeout(() => {
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach((tile, index) => {
+                setTimeout(() => {
+                    tile.style.animation = 'fadeIn 0.5s ease-in-out';
+                }, index * 50);
+            });
+        }, 500);
+    </script>
+</body>
+</html>
